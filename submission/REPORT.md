@@ -44,32 +44,38 @@ python scripts/merge_prelabels.py work/prelabel/yoloe_all/pre.coco.json work/pre
 
 ## 4. Máy có đáng dùng không?
 
-- **CẦN XÁC NHẬN** tổng phút thực đo cho gold_manual (4 ảnh) và batch_review (24 ảnh) trong [time log](time_log.csv). Phút/ảnh lần lượt là tổng phút Gold chia 4 và tổng phút Batch chia 24.
-- **CẦN XÁC NHẬN** kết luận cá nhân sau khi có thời gian thực đo. Đối chiếu accepted 419/519 = 80.7% với 72 box phải xóa, 28 box phải chỉnh và 34 đối tượng phải thêm. Gold và Batch có thể khác độ khó và mật độ vật thể. Khi sang Batch, mức quen guideline và CVAT cũng có thể khác. Nguồn [review stats](qc/review_stats.md).
-- **CẦN XÁC NHẬN** ba quy tắc giảm thiên kiến do học viên chọn. Có thể cân nhắc cách ghi nhận đã quét ảnh khi ẩn box, cách kiểm tra nhãn lớp và cách rà cạnh box hoặc vật sót. Với mỗi quy tắc, ghi cách kiểm tra việc thực hiện.
+- Gán tay Gold mất 30 phút/4 ảnh = 7,5 phút/ảnh. Duyệt Batch có pre-label mất 90 phút/24 ảnh = 3,75 phút/ảnh. Nguồn [time log](time_log.csv).
+- Pre-label có ích để gán nhãn sơ bộ. Batch mất 3,75/7,5 = 50% thời gian mỗi ảnh so với Gold trong lần thực hiện này. Hai nhóm có thể khác về độ khó và mật độ vật thể, và mức độ quen guideline, CVAT khi sang Batch cũng có thể ảnh hưởng thời gian. Tôi vẫn cần duyệt kỹ, đặc biệt với xe ba bánh vì chỉ 11/43 = 25,6% box của lớp này được giữ nguyên. Nguồn [time log](time_log.csv) và [review stats](qc/review_stats.md).
+- Ba quy tắc giảm thiên kiến áp dụng khi duyệt:
+  1. Ẩn nhãn máy, quét toàn ảnh để tìm vật bị bỏ sót, rồi đánh dấu đã quét trước khi bật lại nhãn.
+  2. Trước khi giữ từng box, đối chiếu lớp với đặc điểm nhìn thấy của vật ở mọi mức confidence.
+  3. Rà đủ bốn cạnh theo phần vật thể nhìn thấy và chỉnh cạnh bị lỏng trước khi giữ box.
 
 ## 5. Mask SAM cho 3 vật (Part 5)
 
 | Ảnh | SAM | Click | Vùng mask và lỗi quan sát | Tệp |
 |---|---|---|---|---|
-| img_013.jpg | **CẦN XÁC NHẬN** checkpoint của lần click | 3 dấu trên ảnh (2 dương, 1 âm) | Mask phủ mui và thân xe, lan sang một phần người lái. Chưa xác nhận phần hàng hóa. | [tuktuk_img013.jpg](masks/tuktuk_img013.jpg) |
+| img_013.jpg, xe có người lái | SAM 2.1 Base | 3 (2 dương, 1 âm) | Mask phủ mui và thân xe, lan sang một phần người lái. Chưa xác định được phần hàng hóa từ ảnh. | [tuktuk_img013_sam21.jpg](masks/tuktuk_img013_sam21.jpg) |
+| img_004.jpg, xe xanh lá | SAM 2.1 Base | 4 (2 dương, 2 âm) | Mask phủ mui, kính và thân xe. Người đứng bên phải ở ngoài mask. Biên quanh các khe ở hông xe còn gồ ghề. | [tuktuk_xanh_la_img004.jpg](masks/tuktuk_xanh_la_img004.jpg) |
+| img_004.jpg, xe xanh dương | SAM 2.1 Base | 4 (2 dương, 2 âm) | Mask phủ mui, thân và bánh xe. Người đứng bên phải ở ngoài mask. Mảng vật sáng ở hông xe bị tô một phần và vùng ghế có các lỗ nhỏ. | [tuktuk_xanh_duong_img004.jpg](masks/tuktuk_xanh_duong_img004.jpg) |
 
-- Run r04 xác nhận SAM 2.1 Base cho box → mask. Phiên bản của ảnh click cần đối chiếu với lệnh hoặc log Part 5. **CẦN XÁC NHẬN** và bổ sung 2 vật khác, mỗi vật có ảnh mask, phiên bản, số click và nhận xét.
-- Guideline v1.0 mục 4.2 yêu cầu bám phần nhìn thấy, xử lý lỗ lớn và tách polygon ở vùng tiếp giáp. Với img_013.jpg, đối chiếu riêng vùng người lái và khoảng hở dưới mui. Câu hỏi mở về kính nằm ở mục 6.5 của guideline.
+- Checkpoint `sam2.1_b.pt` lấy từ lệnh Part 5 dùng để tạo ba ảnh trên. Số điểm được đối chiếu với chấm xanh và đỏ trên ảnh đầu ra.
+- Theo guideline v1.0 mục 4.2, mask cần bám biên phần nhìn thấy, để hở lỗ lớn và tách các vật tiếp giáp. Vùng mask lấn sang người lái trong img_013.jpg cần tách khỏi mask xe. Các lỗ nhỏ trên vùng ghế trong img_004.jpg cần đối chiếu tiêu chí diện tích của guideline.
 
 ## 6. Calibration (Part 6)
 
-- Có 0 quyết định đã chốt trong [calibration_decisions.csv](qc/calibration_decisions.csv). Ba ca nháp và bằng chứng nằm trong [guideline v1.1](guidelines/guideline_v1.1_calibrated.md).
-- **CẦN XÁC NHẬN** nguyên nhân từng ca, gồm lỗi detector hoặc thao tác review, và quy tắc nào thực sự cần bổ sung. Sau khi chốt, ghi mỗi quyết định vào CSV và đồng bộ quy tắc mới vào v1.1.
+- Đã chốt 3 quyết định trong [calibration_decisions.csv](qc/calibration_decisions.csv): CAL-01 xử lý sai lớp xe ba bánh, CAL-02 chốt cách dùng confidence và CAL-03 chốt thao tác kiểm box lỏng.
+- CAL-02 giải quyết câu hỏi mở 6.7. Dùng confidence để lọc đầu vào và kiểm lớp, các cạnh box bằng mắt trước khi giữ. Quy tắc được ghi tại mục 1 của [guideline v1.1](guidelines/guideline_v1.1_calibrated.md).
+- CAL-01 là lỗi phân lớp của detector và áp dụng mục 4.3 của v1.0. CAL-03 là bẫy box lỏng lọt trong lần duyệt đầu và áp dụng mục 4.1 của v1.0.
 
 ## 7. QC và quyết định (Part 6)
 
 - Release artifact hiện có 24 ảnh, 492 đối tượng, chưa có ảnh được thay bằng bản QC fix theo [manifest](release/release_manifest.json).
 - Mẫu gồm 5 ảnh ngẫu nhiên, 0 ca can_review, tổng 100 đối tượng. Danh sách khớp phương pháp mặc định với seed 42. Nếu học viên tự QC lô mình đã review, hai lần kiểm có thể lặp lại cùng điểm mù. Nguồn [mẫu QC](qc/qc_sample.csv) và scripts/qc_sample.py.
-- Phiếu còn trống 5/5 ảnh. Bản nháp script đếm 0/100 = 0.0% đối tượng và 0/5 = 0.0% ảnh có lỗi được nhập. **CẦN XÁC NHẬN** lỗi thực tế và các ví dụ sau khi kiểm img_003.jpg, img_006.jpg, img_014.jpg, img_031.jpg và img_035.jpg. Cận trên Wilson 95% trong báo cáo là 43% cho trường hợp quan sát 0/5 ảnh lỗi. Ngay cả khi cả năm ảnh được xác nhận sạch, mẫu này vẫn quá nhỏ để chứng minh ngưỡng 2%. Nguồn [phiếu QC](qc/qc_review.csv) và [QC tự động](qc/qc_report_auto.md).
-- Script kiểm cấu trúc, phạm vi ảnh và đếm lỗi đã nhập. Mức độ ôm sát, lớp đúng trong ảnh và vật cả người lẫn máy bỏ sót cần kiểm bằng mắt.
-- **Quyết định cuối và ngày — CẦN XÁC NHẬN.** Xét Hold trước nếu guideline còn mơ hồ ảnh hưởng nhãn hoặc dữ liệu hỏng. Xét Rework khi vượt ngưỡng ảnh lỗi, lỗi lặp hoặc bắt bẫy dưới chuẩn. Release cần QC hoàn tất và đạt các điều kiện của lab. Bản nháp script gợi ý Rework vì lần đầu bắt 9/12 = 75.0% và còn ảnh chưa kiểm. Nguồn [hướng dẫn QC](../docs/CALIBRATION_QC.md) và [QC tự động](qc/qc_report_auto.md).
-- Mở ảnh tại work/qc/review, ghi mỗi lỗi một dòng với người kiểm và ghi chú. Ảnh đã kiểm sạch ghi khong. Bỏ sót chưa có ID thì để trống object_id và mô tả trong note. Hoàn thành phiếu rồi chạy python scripts/qc_report.py.
+- Lê Việt Long kiểm và xác nhận cả 5 ảnh mẫu sạch. Kết quả là 0/100 = 0.0% đối tượng lỗi và 0/5 = 0.0% ảnh có lỗi, nên mẫu không có loại lỗi để xếp hạng. Cận trên Wilson 95% cho 0/5 ảnh lỗi là 43%. Mẫu quá nhỏ để chứng minh tỉ lệ lỗi theo ảnh của cả lô đạt ngưỡng 2%. Nguồn [phiếu QC](qc/qc_review.csv) và [QC tự động](qc/qc_report_auto.md).
+- Script kiểm cấu trúc, phạm vi ảnh và đếm lỗi đã nhập. Mức độ ôm sát, lớp đúng trong ảnh và vật cả người lẫn má  y bỏ sót cần kiểm bằng mắt.
+- **Quyết định đã chốt: Rework, ngày 2026-11-19.** Hai tệp nhãn qua kiểm tra cấu trúc và ba ca calibration đã được chốt. Mẫu QC ghi nhận 0/5 = 0.0% ảnh lỗi. Tỉ lệ bắt bẫy lần đầu là 9/12 = 75.0%, dưới ngưỡng 80%, nên lô cần duyệt lại. Nguồn [hướng dẫn QC](../docs/CALIBRATION_QC.md) và [QC tự động](qc/qc_report_auto.md).
+- Lượt Rework sẽ áp dụng checklist đã chốt, rà lại lớp xe, biên box và vật bị bỏ sót. Xuất các ảnh đã sửa vào `qc_fixed.json` nếu có thay đổi, dựng lại dữ liệu đầu ra và kiểm QC sau sửa. Số bắt bẫy lần đầu được giữ làm kết quả của vòng duyệt ban đầu.
 
 ## 8. Ghi chú cá nhân
 
