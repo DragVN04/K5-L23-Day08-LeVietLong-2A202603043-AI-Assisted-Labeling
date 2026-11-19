@@ -1,1 +1,4 @@
 case_id,image,nguon,van_de,quyet_dinh,quy_tac_ghi_vao_guideline,phien_ban_guideline
+CAL-01,img_012.jpg,loi_may,"CẦN XÁC NHẬN — r05 gán car cho tuk-tuk so với Gold. Xem ca nháp trong guideline v1.1.",,,
+CAL-02,img_012.jpg,cau_hoi_mo,"CẦN XÁC NHẬN — câu hỏi 6.7 về confidence và chấp nhận box. Xem ca nháp trong guideline v1.1.",,,
+CAL-03,img_029.jpg,bay_lot,"CẦN XÁC NHẬN — loose lọt lần đầu theo review_stats.md. Xem ca nháp trong guideline v1.1.",,,
